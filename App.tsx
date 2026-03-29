@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  Modal,
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
@@ -16,10 +17,10 @@ const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 88;
 const LAMP_STRIP = 44;
 
-function RonTsumoButtons() {
+function RonTsumoButtons({ onRon }: { onRon: () => void }) {
   return (
     <View style={styles.ronTsumoContainer}>
-      <Pressable style={styles.ronBtn}>
+      <Pressable style={styles.ronBtn} onPress={onRon}>
         <Text style={styles.ronTsumoText}>ロン</Text>
       </Pressable>
       <Pressable style={styles.tsumoBtn}>
@@ -62,6 +63,10 @@ export default function App() {
   const [honba, setHonba] = useState(0);
   const [rouletting, setRouletting] = useState(false);
   const [roulettePos, setRoulettePos] = useState(0);
+  const [ronVisible, setRonVisible] = useState(false);
+  const [ronWinner, setRonWinner] = useState(0); // position of ロン declarer
+  const [ronFrom, setRonFrom] = useState(0); // 0=東,1=南,2=西,3=北
+  const [ronPoints, setRonPoints] = useState('');
 
   // positions: 0=bottom, 1=right, 2=top, 3=left (clockwise)
   // dealer = 東, next clockwise = 南, then 西, then 北
@@ -69,6 +74,15 @@ export default function App() {
 
   // 下家 = 東家の右隣（次の親）
   const shimocha = (dealer + 1) % 4;
+
+  const openRonModal = useCallback((winnerPos: number) => {
+    const winnerWindIndex = (winnerPos - dealer + 4) % 4;
+    const firstValid = [0, 1, 2, 3].find(i => i !== winnerWindIndex) ?? 1;
+    setRonWinner(winnerPos);
+    setRonFrom(firstValid);
+    setRonPoints('');
+    setRonVisible(true);
+  }, [dealer]);
 
   const advanceDealer = useCallback(() => {
     setDealer(d => (d + 1) % 4);
@@ -129,7 +143,7 @@ export default function App() {
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
-            <RonTsumoButtons />
+            <RonTsumoButtons onRon={() => openRonModal(2)} />
           </View>
         </View>
 
@@ -145,7 +159,7 @@ export default function App() {
           <View style={[styles.vPanel, { width: PANEL }]}>
             <View style={{ transform: [{ rotate: '90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(3)} score={scores[3]} hideWind={rouletting} />
-              <RonTsumoButtons />
+              <RonTsumoButtons onRon={() => openRonModal(3)} />
             </View>
           </View>
 
@@ -176,7 +190,7 @@ export default function App() {
           <View style={[styles.vPanel, { width: PANEL }]}>
             <View style={{ transform: [{ rotate: '-90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(1)} score={scores[1]} hideWind={rouletting} />
-              <RonTsumoButtons />
+              <RonTsumoButtons onRon={() => openRonModal(1)} />
             </View>
           </View>
 
@@ -216,7 +230,7 @@ export default function App() {
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
-            <RonTsumoButtons />
+            <RonTsumoButtons onRon={() => openRonModal(0)} />
           </View>
         </View>
 
@@ -226,6 +240,75 @@ export default function App() {
         </Pressable>
 
       </View>
+
+      {/* ロン モーダル */}
+      <Modal visible={ronVisible} transparent animationType="fade" onRequestClose={() => setRonVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>ロン</Text>
+
+            <Text style={styles.modalLabel}>どの家から？</Text>
+            <View style={styles.windSelector}>
+              {WINDS.map((w, i) => {
+                const winnerWindIndex = (ronWinner - dealer + 4) % 4;
+                if (i === winnerWindIndex) return null;
+                return (
+                  <Pressable
+                    key={w}
+                    style={[styles.windOption, ronFrom === i && styles.windOptionSelected]}
+                    onPress={() => setRonFrom(i)}
+                  >
+                    <Text style={[styles.windOptionText, ronFrom === i && styles.windOptionTextSelected]}>{w}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.modalLabel}>点数</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={ronPoints}
+              onChangeText={setRonPoints}
+              keyboardType="number-pad"
+              placeholder="例：8000"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+            />
+            {honba > 0 && (
+              <View style={styles.honbaBreakdown}>
+                <Text style={styles.honbaBreakdownText}>
+                  本場：+{(honba * 300).toLocaleString()}（{honba}本場 × 300）
+                </Text>
+                <Text style={styles.honbaTotal}>
+                  合計：{((parseInt(ronPoints, 10) || 0) + honba * 300).toLocaleString()}点
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.modalCancelBtn} onPress={() => { setRonVisible(false); setRonPoints(''); }}>
+                <Text style={styles.modalCancelText}>キャンセル</Text>
+              </Pressable>
+              <Pressable style={styles.modalConfirmBtn} onPress={() => {
+                const pts = parseInt(ronPoints, 10);
+                if (!isNaN(pts) && pts > 0) {
+                  const total = pts + honba * 300;
+                  const loserPos = (ronFrom + dealer) % 4;
+                  setScores(s => s.map((sc, i) => {
+                    if (i === ronWinner) return sc + total;
+                    if (i === loserPos) return sc - total;
+                    return sc;
+                  }));
+                }
+                setRonVisible(false);
+                setRonPoints('');
+              }}>
+                <Text style={styles.modalConfirmText}>決定</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -373,6 +456,116 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+
+  // ── Modal ────────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    width: 300,
+    backgroundColor: '#12122a',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1.5,
+    borderColor: '#c8a84b',
+    gap: 12,
+  },
+  modalTitle: {
+    color: '#c8a84b',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  modalLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  windSelector: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  windOption: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+  },
+  windOptionSelected: {
+    borderColor: '#c8a84b',
+    backgroundColor: 'rgba(200,168,75,0.2)',
+  },
+  windOptionText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  windOptionTextSelected: {
+    color: '#c8a84b',
+  },
+  modalInput: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  honbaBreakdown: {
+    backgroundColor: 'rgba(200,168,75,0.1)',
+    borderRadius: 8,
+    padding: 10,
+    gap: 4,
+  },
+  honbaBreakdownText: {
+    color: 'rgba(200,168,75,0.8)',
+    fontSize: 12,
+  },
+  honbaTotal: {
+    color: '#c8a84b',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  modalConfirmBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#7a1010',
+    alignItems: 'center',
+  },
+  modalConfirmText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
 
   ronTsumoContainer: {
     flexDirection: 'column',
