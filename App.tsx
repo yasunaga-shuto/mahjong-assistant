@@ -17,13 +17,13 @@ const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 88;
 const LAMP_STRIP = 44;
 
-function RonTsumoButtons({ onRon }: { onRon: () => void }) {
+function RonTsumoButtons({ onRon, onTsumo }: { onRon: () => void; onTsumo: () => void }) {
   return (
     <View style={styles.ronTsumoContainer}>
       <Pressable style={styles.ronBtn} onPress={onRon}>
         <Text style={styles.ronTsumoText}>ロン</Text>
       </Pressable>
-      <Pressable style={styles.tsumoBtn}>
+      <Pressable style={styles.tsumoBtn} onPress={onTsumo}>
         <Text style={styles.ronTsumoText}>ツモ</Text>
       </Pressable>
     </View>
@@ -67,6 +67,10 @@ export default function App() {
   const [ronWinner, setRonWinner] = useState(0); // position of ロン declarer
   const [ronFrom, setRonFrom] = useState(0); // 0=東,1=南,2=西,3=北
   const [ronPoints, setRonPoints] = useState('');
+  const [tsumoVisible, setTsumoVisible] = useState(false);
+  const [tsumoWinner, setTsumoWinner] = useState(0);
+  const [tsumoFromDealer, setTsumoFromDealer] = useState('');
+  const [tsumoFromChild, setTsumoFromChild] = useState('');
 
   // positions: 0=bottom, 1=right, 2=top, 3=left (clockwise)
   // dealer = 東, next clockwise = 南, then 西, then 北
@@ -74,6 +78,13 @@ export default function App() {
 
   // 下家 = 東家の右隣（次の親）
   const shimocha = (dealer + 1) % 4;
+
+  const openTsumoModal = useCallback((winnerPos: number) => {
+    setTsumoWinner(winnerPos);
+    setTsumoFromDealer('');
+    setTsumoFromChild('');
+    setTsumoVisible(true);
+  }, []);
 
   const openRonModal = useCallback((winnerPos: number) => {
     const winnerWindIndex = (winnerPos - dealer + 4) % 4;
@@ -143,7 +154,7 @@ export default function App() {
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
-            <RonTsumoButtons onRon={() => openRonModal(2)} />
+            <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
           </View>
         </View>
 
@@ -159,7 +170,7 @@ export default function App() {
           <View style={[styles.vPanel, { width: PANEL }]}>
             <View style={{ transform: [{ rotate: '90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(3)} score={scores[3]} hideWind={rouletting} />
-              <RonTsumoButtons onRon={() => openRonModal(3)} />
+              <RonTsumoButtons onRon={() => openRonModal(3)} onTsumo={() => openTsumoModal(3)} />
             </View>
           </View>
 
@@ -190,7 +201,7 @@ export default function App() {
           <View style={[styles.vPanel, { width: PANEL }]}>
             <View style={{ transform: [{ rotate: '-90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(1)} score={scores[1]} hideWind={rouletting} />
-              <RonTsumoButtons onRon={() => openRonModal(1)} />
+              <RonTsumoButtons onRon={() => openRonModal(1)} onTsumo={() => openTsumoModal(1)} />
             </View>
           </View>
 
@@ -230,7 +241,7 @@ export default function App() {
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
-            <RonTsumoButtons onRon={() => openRonModal(0)} />
+            <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
           </View>
         </View>
 
@@ -240,6 +251,85 @@ export default function App() {
         </Pressable>
 
       </View>
+
+      {/* ツモ モーダル */}
+      <Modal visible={tsumoVisible} transparent animationType="fade" onRequestClose={() => setTsumoVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>ツモ</Text>
+            {(() => {
+              const isDealer = tsumoWinner === dealer;
+              const childPts = parseInt(tsumoFromChild, 10) || 0;
+              const dealerPts = parseInt(tsumoFromDealer, 10) || 0;
+              const honbaBonus = honba * 100;
+              const totalReceived = isDealer
+                ? (childPts + honbaBonus) * 3
+                : (dealerPts + honbaBonus) + (childPts + honbaBonus) * 2;
+              return (
+                <>
+                  {!isDealer && (
+                    <>
+                      <Text style={styles.modalLabel}>親から</Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        value={tsumoFromDealer}
+                        onChangeText={setTsumoFromDealer}
+                        keyboardType="number-pad"
+                        placeholder="例：3900"
+                        placeholderTextColor="rgba(255,255,255,0.3)"
+                      />
+                    </>
+                  )}
+                  <Text style={styles.modalLabel}>{isDealer ? '子から（各）' : '子から（各）'}</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={tsumoFromChild}
+                    onChangeText={setTsumoFromChild}
+                    keyboardType="number-pad"
+                    placeholder="例：2000"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                  />
+                  {honba > 0 && (
+                    <View style={styles.honbaBreakdown}>
+                      <Text style={styles.honbaBreakdownText}>
+                        本場：各 +{honbaBonus}（{honba}本場 × 100）
+                      </Text>
+                      <Text style={styles.honbaTotal}>
+                        合計受取：{totalReceived.toLocaleString()}点
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.modalButtons}>
+                    <Pressable style={styles.modalCancelBtn} onPress={() => { setTsumoVisible(false); setTsumoFromDealer(''); setTsumoFromChild(''); }}>
+                      <Text style={styles.modalCancelText}>キャンセル</Text>
+                    </Pressable>
+                    <Pressable style={styles.modalConfirmBtn} onPress={() => {
+                      const cPts = parseInt(tsumoFromChild, 10);
+                      const dPts = isDealer ? 0 : parseInt(tsumoFromDealer, 10);
+                      if (!isNaN(cPts) && cPts > 0 && (isDealer || (!isNaN(dPts) && dPts > 0))) {
+                        const childPay = cPts + honba * 100;
+                        const dealerPay = isDealer ? 0 : dPts + honba * 100;
+                        const total = isDealer ? childPay * 3 : dealerPay + childPay * 2;
+                        setScores(s => s.map((sc, i) => {
+                          if (i === tsumoWinner) return sc + total;
+                          if (!isDealer && i === dealer) return sc - dealerPay;
+                          if (i !== tsumoWinner) return sc - childPay;
+                          return sc;
+                        }));
+                      }
+                      setTsumoVisible(false);
+                      setTsumoFromDealer('');
+                      setTsumoFromChild('');
+                    }}>
+                      <Text style={styles.modalConfirmText}>決定</Text>
+                    </Pressable>
+                  </View>
+                </>
+              );
+            })()}
+          </View>
+        </View>
+      </Modal>
 
       {/* ロン モーダル */}
       <Modal visible={ronVisible} transparent animationType="fade" onRequestClose={() => setRonVisible(false)}>
