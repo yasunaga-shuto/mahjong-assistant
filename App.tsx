@@ -16,6 +16,19 @@ const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 88;
 const LAMP_STRIP = 44;
 
+function RonTsumoButtons() {
+  return (
+    <View style={styles.ronTsumoContainer}>
+      <Pressable style={styles.ronBtn}>
+        <Text style={styles.ronTsumoText}>ロン</Text>
+      </Pressable>
+      <Pressable style={styles.tsumoBtn}>
+        <Text style={styles.ronTsumoText}>ツモ</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function PlayerContent({ wind, score, hideWind = false }: { wind: string; score: number; hideWind?: boolean }) {
   return (
     <View style={styles.playerContent}>
@@ -114,8 +127,9 @@ export default function App() {
 
         {/* ── TOP PLAYER ── */}
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
-          <View style={{ transform: [{ rotate: '180deg' }] }}>
+          <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
+            <RonTsumoButtons />
           </View>
         </View>
 
@@ -129,8 +143,9 @@ export default function App() {
 
           {/* LEFT PLAYER */}
           <View style={[styles.vPanel, { width: PANEL }]}>
-            <View style={{ transform: [{ rotate: '90deg' }] }}>
+            <View style={{ transform: [{ rotate: '90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(3)} score={scores[3]} hideWind={rouletting} />
+              <RonTsumoButtons />
             </View>
           </View>
 
@@ -159,8 +174,9 @@ export default function App() {
 
           {/* RIGHT PLAYER */}
           <View style={[styles.vPanel, { width: PANEL }]}>
-            <View style={{ transform: [{ rotate: '-90deg' }] }}>
+            <View style={{ transform: [{ rotate: '-90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <PlayerContent wind={wind(1)} score={scores[1]} hideWind={rouletting} />
+              <RonTsumoButtons />
             </View>
           </View>
 
@@ -198,7 +214,10 @@ export default function App() {
 
         {/* ── BOTTOM PLAYER (自分) ── */}
         <View style={[styles.hPanel, { marginLeft: 110 }]}>
-          <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
+            <RonTsumoButtons />
+          </View>
         </View>
 
         {/* Reset button */}
@@ -354,6 +373,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+
+  ronTsumoContainer: {
+    flexDirection: 'column',
+    gap: 5,
+  },
+  ronBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: '#7a1010',
+    alignItems: 'center',
+  },
+  tsumoBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: '#1a3a6b',
+    alignItems: 'center',
+  },
+  ronTsumoText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
 
   hint: {
     color: 'rgba(255,255,255,0.3)',
