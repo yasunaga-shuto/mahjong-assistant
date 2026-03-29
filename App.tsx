@@ -29,9 +29,9 @@ function PlayerContent({ wind, score, hideWind = false }: { wind: string; score:
   );
 }
 
-function Lamp({ on, pressable = false, vertical = false, onPress, onLongPress }: { on: boolean; pressable?: boolean; vertical?: boolean; onPress?: () => void; onLongPress?: () => void }) {
+function Lamp({ on, pressable = false, longPressable = false, vertical = false, onPress, onLongPress }: { on: boolean; pressable?: boolean; longPressable?: boolean; vertical?: boolean; onPress?: () => void; onLongPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={400} disabled={!pressable}>
+    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={400} disabled={!pressable && !longPressable}>
       <View style={[styles.lampOuter, vertical && styles.lampOuterV, on && styles.lampOuterOn]}>
         <View style={[styles.lampInner, on && styles.lampInnerOn]} />
       </View>
@@ -121,7 +121,7 @@ export default function App() {
 
         {/* lamp: between top panel and center */}
         <View style={[styles.hLampStrip, { justifyContent: 'flex-end' }]}>
-          <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} onPress={advanceDealer} onLongPress={roll} />
+          <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
         </View>
 
         {/* ── MIDDLE ROW ── */}
@@ -136,7 +136,7 @@ export default function App() {
 
           {/* lamp: between left panel and center */}
           <View style={[styles.vLampStrip, { alignItems: 'flex-end' }]}>
-            <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} vertical onPress={advanceDealer} onLongPress={roll} />
+            <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
           </View>
 
           {/* CENTER */}
@@ -154,7 +154,7 @@ export default function App() {
 
           {/* lamp: between center and right panel */}
           <View style={[styles.vLampStrip, { alignItems: 'flex-start' }]}>
-            <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} vertical onPress={advanceDealer} onLongPress={roll} />
+            <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
           </View>
 
           {/* RIGHT PLAYER */}
@@ -168,7 +168,7 @@ export default function App() {
 
         {/* lamp + 本場: between center and bottom panel */}
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
-          <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} onPress={advanceDealer} onLongPress={roll} />
+          <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
           <View style={[styles.honbaContainer, { position: 'absolute', right: 60 }]}>
             <Text style={styles.honbaLabel}>本場</Text>
             <TextInput
