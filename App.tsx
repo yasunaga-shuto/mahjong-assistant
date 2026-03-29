@@ -316,6 +316,7 @@ export default function App() {
                           if (i !== tsumoWinner) return sc - childPay;
                           return sc;
                         }));
+                        if (isDealer) setHonba(h => h + 1);
                       }
                       setTsumoVisible(false);
                       setTsumoFromDealer('');
@@ -388,6 +389,7 @@ export default function App() {
                     if (i === loserPos) return sc - total;
                     return sc;
                   }));
+                  if (ronWinner === dealer) setHonba(h => h + 1);
                 }
                 setRonVisible(false);
                 setRonPoints('');
