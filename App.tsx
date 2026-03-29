@@ -317,6 +317,7 @@ export default function App() {
                           return sc;
                         }));
                         if (isDealer) setHonba(h => h + 1);
+                        else setHonba(0);
                       }
                       setTsumoVisible(false);
                       setTsumoFromDealer('');
@@ -390,6 +391,7 @@ export default function App() {
                     return sc;
                   }));
                   if (ronWinner === dealer) setHonba(h => h + 1);
+                  else setHonba(0);
                 }
                 setRonVisible(false);
                 setRonPoints('');
