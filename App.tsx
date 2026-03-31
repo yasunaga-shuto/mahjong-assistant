@@ -14,8 +14,8 @@ import { DiceCanvas } from './components/DiceCanvas';
 
 const WINDS = ['東', '南', '西', '北'];
 const ROUND_NUMS = ['一', '二', '三', '四'];
-const PANEL = 88;
-const LAMP_STRIP = 44;
+const PANEL = 62;
+const LAMP_STRIP = 28;
 
 function RonTsumoButtons({ onRon, onTsumo }: { onRon: () => void; onTsumo: () => void }) {
   return (
@@ -151,7 +151,7 @@ export default function App() {
       <View style={styles.container}>
 
         {/* ── TOP PLAYER ── */}
-        <View style={[styles.hPanel, { marginLeft: 110 }]}>
+        <View style={[styles.hPanel, { marginLeft: 96 }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
@@ -184,9 +184,9 @@ export default function App() {
             <Text style={styles.roundLabel}>{WINDS[roundWind]} {ROUND_NUMS[roundNum - 1]} 局</Text>
             <Pressable onLongPress={roll} delayLongPress={400} style={styles.diceArea}>
               <View style={styles.diceRow}>
-                <DiceCanvas value={dice[0]} rolling={rolling} size={80} />
+                <DiceCanvas value={dice[0]} rolling={rolling} size={64} />
                 <View style={{ width: 8 }} />
-                <DiceCanvas value={dice[1]} rolling={rolling} size={80} />
+                <DiceCanvas value={dice[1]} rolling={rolling} size={64} />
               </View>
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
@@ -210,7 +210,7 @@ export default function App() {
         {/* lamp + 本場: between center and bottom panel */}
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
           <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
-          <View style={[styles.honbaContainer, { position: 'absolute', right: 60 }]}>
+          <View style={[styles.honbaContainer, { position: 'absolute', right: 50 }]}>
             <Text style={styles.honbaLabel}>本場</Text>
             <TextInput
               style={styles.honbaInput}
@@ -238,7 +238,7 @@ export default function App() {
         </View>
 
         {/* ── BOTTOM PLAYER (自分) ── */}
-        <View style={[styles.hPanel, { marginLeft: 110 }]}>
+        <View style={[styles.hPanel, { marginLeft: 96 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 6,
   },
 
   // ── Lamp strips (between panels and center) ──────────────
@@ -512,21 +512,21 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   windBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#c8a84b',
     alignItems: 'center',
     justifyContent: 'center',
   },
   windText: {
     color: '#0a0a18',
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
   },
   scoreText: {
     color: '#ffffff',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
@@ -534,13 +534,13 @@ const styles = StyleSheet.create({
   // ── Center content ───────────────────────────────────────
   roundLabel: {
     color: '#c8a84b',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: 3,
   },
   diceArea: {
-    padding: 18,
-    borderRadius: 18,
+    padding: 10,
+    borderRadius: 14,
     backgroundColor: 'rgba(0,0,0,0.35)',
     borderWidth: 1,
     borderColor: 'rgba(200,168,75,0.35)',
