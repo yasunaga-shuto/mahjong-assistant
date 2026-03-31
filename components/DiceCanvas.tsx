@@ -1,29 +1,19 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
 import * as THREE from 'three';
 
-// BoxGeometry material order: [+x, -x, +y, -y, +z, -z]
+// BoxGeometry face order: [+x, -x, +y, -y, +z, -z]
 const FACE_VALUES = [3, 4, 2, 5, 1, 6];
-const FACE_NORMALS = [
-  new THREE.Vector3( 1, 0, 0),
-  new THREE.Vector3(-1, 0, 0),
-  new THREE.Vector3( 0, 1, 0),
-  new THREE.Vector3( 0,-1, 0),
-  new THREE.Vector3( 0, 0, 1),
-  new THREE.Vector3( 0, 0,-1),
-];
 
-/** quaternion to show value V toward camera (+Z) */
 const FRONT_QUATS: THREE.Quaternion[] = [
-  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)),           // 1 → face index 4 (+z)
-  new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), // 2 → face index 2 (+y)
-  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0)), // 3 → face index 0 (+x)
-  new THREE.Quaternion().setFromEuler(new THREE.Euler(0,  Math.PI / 2, 0)), // 4 → face index 1 (-x)
-  new THREE.Quaternion().setFromEuler(new THREE.Euler( Math.PI / 2, 0, 0)), // 5 → face index 3 (-y)
-  new THREE.Quaternion().setFromEuler(new THREE.Euler(0,  Math.PI, 0)),     // 6 → face index 5 (-z)
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)),             // 1 → +z
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), // 2 → +y
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0)), // 3 → +x
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(0,  Math.PI / 2, 0)), // 4 → -x
+  new THREE.Quaternion().setFromEuler(new THREE.Euler( Math.PI / 2, 0, 0)), // 5 → -y
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(0,  Math.PI, 0)),     // 6 → -z
 ];
 
-// pip positions (normalized 0-1)
 const PIPS: [number, number][][] = [
   [[0.5, 0.5]],
   [[0.72, 0.28], [0.28, 0.72]],
@@ -33,105 +23,119 @@ const PIPS: [number, number][][] = [
   [[0.28, 0.2],  [0.72, 0.2],  [0.28, 0.5], [0.72, 0.5], [0.28, 0.8], [0.72, 0.8]],
 ];
 
-let texCache = new Map<number, THREE.CanvasTexture>();
-function getTex(value: number): THREE.CanvasTexture {
-  if (texCache.has(value)) return texCache.get(value)!;
-  const S = 256;
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = S;
-  const ctx = cv.getContext('2d')!;
-  ctx.fillStyle = '#e8e8e8'; ctx.fillRect(0, 0, S, S);
-  const r = 36;
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.moveTo(r,0); ctx.lineTo(S-r,0); ctx.arcTo(S,0,S,r,r);
-  ctx.lineTo(S,S-r); ctx.arcTo(S,S,S-r,S,r);
-  ctx.lineTo(r,S); ctx.arcTo(0,S,0,S-r,r);
-  ctx.lineTo(0,r); ctx.arcTo(0,0,r,0,r);
-  ctx.closePath(); ctx.fill();
-  const g = ctx.createLinearGradient(0,0,S*0.7,S*0.7);
-  g.addColorStop(0,'rgba(255,255,255,0.5)'); g.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fill();
-  const dotR = S * 0.085;
+function createDieTexture(value: number): THREE.DataTexture {
+  const S = 128;
+  const data = new Uint8Array(4 * S * S);
+
+  const setPixel = (x: number, y: number, r: number, g: number, b: number) => {
+    if (x < 0 || x >= S || y < 0 || y >= S) return;
+    const i = (y * S + x) * 4;
+    data[i] = r; data[i + 1] = g; data[i + 2] = b; data[i + 3] = 255;
+  };
+
+  const R = 14;
+  const inFace = (x: number, y: number) => {
+    const dx = Math.max(R - x, 0, x - (S - 1 - R));
+    const dy = Math.max(R - y, 0, y - (S - 1 - R));
+    return dx * dx + dy * dy <= R * R;
+  };
+
+  for (let y = 0; y < S; y++)
+    for (let x = 0; x < S; x++)
+      if (inFace(x, y)) setPixel(x, y, 255, 255, 255);
+      else              setPixel(x, y, 220, 220, 220);
+
+  const pipR = S * 0.082;
   const isRed = value === 1;
-  for (const [nx, ny] of PIPS[value-1]) {
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.beginPath(); ctx.arc(nx*S+3, ny*S+4, dotR, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = isRed ? '#cc1a1a' : '#1a0a0a';
-    ctx.beginPath(); ctx.arc(nx*S, ny*S, dotR, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
-    ctx.beginPath(); ctx.arc(nx*S-dotR*0.28, ny*S-dotR*0.28, dotR*0.45, 0, Math.PI*2); ctx.fill();
+  for (const [nx, ny] of PIPS[value - 1]) {
+    const cx = nx * (S - 1);
+    const cy = ny * (S - 1);
+    for (let y = Math.floor(cy - pipR - 1); y <= Math.ceil(cy + pipR + 1); y++)
+      for (let x = Math.floor(cx - pipR - 1); x <= Math.ceil(cx + pipR + 1); x++)
+        if ((x - cx) ** 2 + (y - cy) ** 2 <= pipR * pipR)
+          setPixel(x, y, isRed ? 204 : 26, isRed ? 26 : 10, isRed ? 26 : 10);
   }
-  const tex = new THREE.CanvasTexture(cv);
-  texCache.set(value, tex);
+
+  const tex = new THREE.DataTexture(data, S, S, THREE.RGBAFormat);
+  tex.needsUpdate = true;
   return tex;
 }
 
-// Reset caches on hot reload
-texCache = new Map();
-let sharedMats: THREE.MeshStandardMaterial[] | null = null;
-sharedMats = null;
-function getMats() {
-  if (!sharedMats) {
-    sharedMats = FACE_VALUES.map(v => new THREE.MeshStandardMaterial({
-      map: getTex(v), roughness: 0.3, metalness: 0.05,
-    }));
-  }
-  return sharedMats;
-}
+export function DiceCanvas({ value, rolling, size }: { value: number; rolling: boolean; size: number }) {
+  const valueRef   = useRef(value);
+  const rollingRef = useRef(rolling);
+  const rafRef     = useRef<number>(0);
 
-interface DieProps {
-  value: number;
-  rolling: boolean;
-}
+  useEffect(() => { valueRef.current = value; },   [value]);
+  useEffect(() => { rollingRef.current = rolling; }, [rolling]);
 
-function Die({ value, rolling }: DieProps) {
-  const mats = useMemo(getMats, []);
-  const meshRef = useRef<THREE.Mesh>(null!);
-  const spinRef = useRef(new THREE.Euler(
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-  ));
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
-  useFrame((_, delta) => {
-    if (rolling) {
-      spinRef.current.x += delta * 8;
-      spinRef.current.y += delta * 11;
-      spinRef.current.z += delta * 6;
-      meshRef.current.rotation.set(spinRef.current.x, spinRef.current.y, spinRef.current.z);
-    } else {
-      const target = FRONT_QUATS[value - 1];
-      meshRef.current.quaternion.slerp(target, 0.12);
-    }
-  });
+  const onContextCreate = useCallback((gl: ExpoWebGLRenderingContext) => {
+    const W = gl.drawingBufferWidth;
+    const H = gl.drawingBufferHeight;
+
+    // Minimal canvas-like object Three.js needs when given an existing context
+    const fakeCanvas = {
+      width: W, height: H,
+      style: { width: `${W}px`, height: `${H}px` },
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      clientWidth: W, clientHeight: H,
+      getContext: () => gl,
+    } as unknown as HTMLCanvasElement;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: fakeCanvas,
+      context: gl as unknown as WebGLRenderingContext,
+      alpha: true,
+      antialias: false,
+    });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(1);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+    camera.position.set(0, 0, 3.5);
+
+    const geometry  = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+    const materials = FACE_VALUES.map(v =>
+      new THREE.MeshBasicMaterial({ map: createDieTexture(v) })
+    );
+    const mesh = new THREE.Mesh(geometry, materials);
+    scene.add(mesh);
+
+    const spin = new THREE.Euler(
+      Math.random() * Math.PI * 2,
+      Math.random() * Math.PI * 2,
+      0,
+    );
+    let lastT = 0;
+
+    const animate = (t: number) => {
+      rafRef.current = requestAnimationFrame(animate);
+      const dt = Math.min((t - lastT) / 1000, 0.1);
+      lastT = t;
+
+      if (rollingRef.current) {
+        spin.x += dt * 8;
+        spin.y += dt * 11;
+        mesh.rotation.set(spin.x, spin.y, spin.z);
+      } else {
+        mesh.quaternion.slerp(FRONT_QUATS[valueRef.current - 1], 0.12);
+      }
+
+      renderer.render(scene, camera);
+      (gl as ExpoWebGLRenderingContext).endFrameEXP();
+    };
+    rafRef.current = requestAnimationFrame(animate);
+  }, []); // runs once; value/rolling accessed via refs
 
   return (
-    <mesh ref={meshRef} material={mats}>
-      <boxGeometry args={[1.5, 1.5, 1.5]} />
-    </mesh>
-  );
-}
-
-interface Props {
-  value: number;
-  rolling: boolean;
-  size: number;
-}
-
-export function DiceCanvas({ value, rolling, size }: Props) {
-  return (
-    <Canvas
+    <GLView
       style={{ width: size, height: size }}
-      camera={{ position: [0, 0, 3.5], fov: 42 }}
-      onCreated={({ gl }) => {
-        gl.setClearColor(0x000000, 0);
-      }}
-    >
-      <ambientLight intensity={1.8} />
-      <pointLight position={[-4, 6, 4]} intensity={1.0} />
-      <pointLight position={[3, -1, 3]} intensity={0.5} color="#ffffff" />
-      <Die value={value} rolling={rolling} />
-    </Canvas>
+      onContextCreate={onContextCreate}
+    />
   );
 }
