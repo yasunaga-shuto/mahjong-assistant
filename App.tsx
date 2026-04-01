@@ -230,7 +230,7 @@ export default function App() {
       <View style={styles.container}>
 
         {/* ── TOP PLAYER ── */}
-        <View style={[styles.hPanel, { marginLeft: 80 }]}>
+        <View style={[styles.hPanel, {}]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
@@ -317,7 +317,7 @@ export default function App() {
         </View>
 
         {/* ── BOTTOM PLAYER (自分) ── */}
-        <View style={[styles.hPanel, { marginLeft: 80 }]}>
+        <View style={[styles.hPanel, {}]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   // ── Panels ──────────────────────────────────────────────
   hPanel: {
     height: PANEL,
-    marginHorizontal: V_PANEL_W + LAMP_STRIP,
+    marginHorizontal: V_PANEL_W + LAMP_STRIP + 60,
     backgroundColor: '#12122a',
     borderColor: '#c8a84b',
     borderWidth: 1.5,
