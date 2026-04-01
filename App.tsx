@@ -235,7 +235,7 @@ export default function App() {
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
           </View>
-          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: 35 }] }}>
+          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: 45 }] }}>
             <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
           </View>
         </View>
@@ -319,7 +319,7 @@ export default function App() {
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
           </View>
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: -35 }] }}>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: -45 }] }}>
             <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
           </View>
         </View>
