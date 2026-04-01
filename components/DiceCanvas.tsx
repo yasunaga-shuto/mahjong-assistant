@@ -61,13 +61,15 @@ function createDieTexture(value: number): THREE.DataTexture {
   return tex;
 }
 
-export function DiceCanvas({ value, rolling, size }: { value: number; rolling: boolean; size: number }) {
+export function DiceCanvas({ value, rolling, size, paused = false }: { value: number; rolling: boolean; size: number; paused?: boolean }) {
   const valueRef   = useRef(value);
   const rollingRef = useRef(rolling);
+  const pausedRef  = useRef(paused);
   const rafRef     = useRef<number>(0);
 
   useEffect(() => { valueRef.current = value; },   [value]);
   useEffect(() => { rollingRef.current = rolling; }, [rolling]);
+  useEffect(() => { pausedRef.current = paused; },  [paused]);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
@@ -126,8 +128,14 @@ export function DiceCanvas({ value, rolling, size }: { value: number; rolling: b
         mesh.quaternion.slerp(FRONT_QUATS[valueRef.current - 1], 0.12);
       }
 
-      renderer.render(scene, camera);
-      (gl as ExpoWebGLRenderingContext).endFrameEXP();
+      if (!pausedRef.current) {
+        try {
+          renderer.render(scene, camera);
+          gl.endFrameEXP();
+        } catch (_) {
+          // GL context may be temporarily unavailable
+        }
+      }
     };
     rafRef.current = requestAnimationFrame(animate);
   }, []); // runs once; value/rolling accessed via refs

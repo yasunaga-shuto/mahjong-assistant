@@ -4,9 +4,8 @@ import {
   Text,
   TextInput,
   Pressable,
-  Modal,
   StyleSheet,
-  SafeAreaView,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,6 +15,84 @@ const WINDS = ['東', '南', '西', '北'];
 const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 62;
 const LAMP_STRIP = 28;
+
+function TsumoOverlay({ dealer, tsumoWinner, honba, tsumoFromDealer, tsumoFromChild, setTsumoFromDealer, setTsumoFromChild, onCancel, onConfirm }: {
+  dealer: number; tsumoWinner: number; honba: number;
+  tsumoFromDealer: string; tsumoFromChild: string;
+  setTsumoFromDealer: (v: string) => void;
+  setTsumoFromChild: (v: string) => void;
+  onCancel: () => void;
+  onConfirm: (total: number, isDealer: boolean, dealerPay: number, childPay: number) => void;
+}) {
+  const isDealer = tsumoWinner === dealer;
+  const childPts = parseInt(tsumoFromChild, 10) || 0;
+  const dealerPts = parseInt(tsumoFromDealer, 10) || 0;
+  const honbaBonus = honba * 100;
+  const totalReceived = isDealer
+    ? (childPts + honbaBonus) * 3
+    : (dealerPts + honbaBonus) + (childPts + honbaBonus) * 2;
+
+  const handleConfirm = () => {
+    const cPts = parseInt(tsumoFromChild, 10);
+    const dPts = isDealer ? 0 : parseInt(tsumoFromDealer, 10);
+    if (!isNaN(cPts) && cPts > 0 && (isDealer || (!isNaN(dPts) && dPts > 0))) {
+      const childPay = cPts + honba * 100;
+      const dealerPay = isDealer ? 0 : dPts + honba * 100;
+      const total = isDealer ? childPay * 3 : dealerPay + childPay * 2;
+      onConfirm(total, isDealer, dealerPay, childPay);
+    } else {
+      onCancel();
+    }
+  };
+
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.modalOverlay]}>
+      <View style={styles.modalBox}>
+        <Text style={styles.modalTitle}>ツモ</Text>
+        {!isDealer && (
+          <>
+            <Text style={styles.modalLabel}>親から</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={tsumoFromDealer}
+              onChangeText={setTsumoFromDealer}
+              keyboardType="number-pad"
+              placeholder="例：3900"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+            />
+          </>
+        )}
+        <Text style={styles.modalLabel}>子から（各）</Text>
+        <TextInput
+          style={styles.modalInput}
+          value={tsumoFromChild}
+          onChangeText={setTsumoFromChild}
+          keyboardType="number-pad"
+          placeholder="例：2000"
+          placeholderTextColor="rgba(255,255,255,0.3)"
+        />
+        {honba > 0 && (
+          <View style={styles.honbaBreakdown}>
+            <Text style={styles.honbaBreakdownText}>
+              本場：各 +{honbaBonus}（{honba}本場 × 100）
+            </Text>
+            <Text style={styles.honbaTotal}>
+              合計受取：{totalReceived.toLocaleString()}点
+            </Text>
+          </View>
+        )}
+        <View style={styles.modalButtons}>
+          <Pressable style={styles.modalCancelBtn} onPress={onCancel}>
+            <Text style={styles.modalCancelText}>キャンセル</Text>
+          </Pressable>
+          <Pressable style={styles.modalConfirmBtn} onPress={handleConfirm}>
+            <Text style={styles.modalConfirmText}>決定</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 function RonTsumoButtons({ onRon, onTsumo }: { onRon: () => void; onTsumo: () => void }) {
   return (
@@ -145,7 +222,7 @@ export default function App() {
   }, [rolling]);
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <StatusBar style="light" />
 
       <View style={styles.container}>
@@ -184,9 +261,9 @@ export default function App() {
             <Text style={styles.roundLabel}>{WINDS[roundWind]} {ROUND_NUMS[roundNum - 1]} 局</Text>
             <Pressable onLongPress={roll} delayLongPress={400} style={styles.diceArea}>
               <View style={styles.diceRow}>
-                <DiceCanvas value={dice[0]} rolling={rolling} size={64} />
+                <DiceCanvas value={dice[0]} rolling={rolling} size={64} paused={ronVisible || tsumoVisible} />
                 <View style={{ width: 8 }} />
-                <DiceCanvas value={dice[1]} rolling={rolling} size={64} />
+                <DiceCanvas value={dice[1]} rolling={rolling} size={64} paused={ronVisible || tsumoVisible} />
               </View>
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
@@ -252,90 +329,34 @@ export default function App() {
 
       </View>
 
-      {/* ツモ モーダル */}
-      <Modal visible={tsumoVisible} transparent animationType="fade" onRequestClose={() => setTsumoVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>ツモ</Text>
-            {(() => {
-              const isDealer = tsumoWinner === dealer;
-              const childPts = parseInt(tsumoFromChild, 10) || 0;
-              const dealerPts = parseInt(tsumoFromDealer, 10) || 0;
-              const honbaBonus = honba * 100;
-              const totalReceived = isDealer
-                ? (childPts + honbaBonus) * 3
-                : (dealerPts + honbaBonus) + (childPts + honbaBonus) * 2;
-              return (
-                <>
-                  {!isDealer && (
-                    <>
-                      <Text style={styles.modalLabel}>親から</Text>
-                      <TextInput
-                        style={styles.modalInput}
-                        value={tsumoFromDealer}
-                        onChangeText={setTsumoFromDealer}
-                        keyboardType="number-pad"
-                        placeholder="例：3900"
-                        placeholderTextColor="rgba(255,255,255,0.3)"
-                      />
-                    </>
-                  )}
-                  <Text style={styles.modalLabel}>{isDealer ? '子から（各）' : '子から（各）'}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    value={tsumoFromChild}
-                    onChangeText={setTsumoFromChild}
-                    keyboardType="number-pad"
-                    placeholder="例：2000"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
-                  />
-                  {honba > 0 && (
-                    <View style={styles.honbaBreakdown}>
-                      <Text style={styles.honbaBreakdownText}>
-                        本場：各 +{honbaBonus}（{honba}本場 × 100）
-                      </Text>
-                      <Text style={styles.honbaTotal}>
-                        合計受取：{totalReceived.toLocaleString()}点
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.modalButtons}>
-                    <Pressable style={styles.modalCancelBtn} onPress={() => { setTsumoVisible(false); setTsumoFromDealer(''); setTsumoFromChild(''); }}>
-                      <Text style={styles.modalCancelText}>キャンセル</Text>
-                    </Pressable>
-                    <Pressable style={styles.modalConfirmBtn} onPress={() => {
-                      const cPts = parseInt(tsumoFromChild, 10);
-                      const dPts = isDealer ? 0 : parseInt(tsumoFromDealer, 10);
-                      if (!isNaN(cPts) && cPts > 0 && (isDealer || (!isNaN(dPts) && dPts > 0))) {
-                        const childPay = cPts + honba * 100;
-                        const dealerPay = isDealer ? 0 : dPts + honba * 100;
-                        const total = isDealer ? childPay * 3 : dealerPay + childPay * 2;
-                        setScores(s => s.map((sc, i) => {
-                          if (i === tsumoWinner) return sc + total;
-                          if (!isDealer && i === dealer) return sc - dealerPay;
-                          if (i !== tsumoWinner) return sc - childPay;
-                          return sc;
-                        }));
-                        if (isDealer) setHonba(h => h + 1);
-                        else setHonba(0);
-                      }
-                      setTsumoVisible(false);
-                      setTsumoFromDealer('');
-                      setTsumoFromChild('');
-                    }}>
-                      <Text style={styles.modalConfirmText}>決定</Text>
-                    </Pressable>
-                  </View>
-                </>
-              );
-            })()}
-          </View>
-        </View>
-      </Modal>
+      {/* ツモ オーバーレイ */}
+      {tsumoVisible && <TsumoOverlay
+        dealer={dealer}
+        tsumoWinner={tsumoWinner}
+        honba={honba}
+        tsumoFromDealer={tsumoFromDealer}
+        tsumoFromChild={tsumoFromChild}
+        setTsumoFromDealer={setTsumoFromDealer}
+        setTsumoFromChild={setTsumoFromChild}
+        onCancel={() => { setTsumoVisible(false); setTsumoFromDealer(''); setTsumoFromChild(''); }}
+        onConfirm={(total, isDealer, dealerPay, childPay) => {
+          setScores(s => s.map((sc, i) => {
+            if (i === tsumoWinner) return sc + total;
+            if (!isDealer && i === dealer) return sc - dealerPay;
+            if (i !== tsumoWinner) return sc - childPay;
+            return sc;
+          }));
+          if (isDealer) setHonba(h => h + 1);
+          else setHonba(0);
+          setTsumoVisible(false);
+          setTsumoFromDealer('');
+          setTsumoFromChild('');
+        }}
+      />}
 
-      {/* ロン モーダル */}
-      <Modal visible={ronVisible} transparent animationType="fade" onRequestClose={() => setRonVisible(false)}>
-        <View style={styles.modalOverlay}>
+      {/* ロン オーバーレイ */}
+      {ronVisible && (
+        <View style={[StyleSheet.absoluteFill, styles.modalOverlay]}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>ロン</Text>
 
@@ -401,9 +422,9 @@ export default function App() {
             </View>
           </View>
         </View>
-      </Modal>
+      )}
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -411,6 +432,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#0a2e12',
+    paddingTop: Platform.OS === 'ios' ? 44 : 0,
   },
   container: {
     flex: 1,
@@ -438,7 +460,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   center: {
     flex: 1,
