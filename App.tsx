@@ -238,7 +238,7 @@ export default function App() {
         </View>
 
         {/* lamp: between top panel and center */}
-        <View style={[styles.hLampStrip, { justifyContent: 'flex-end' }]}>
+        <View style={[styles.hLampStrip, { justifyContent: 'center', marginHorizontal: 0 }]}>
           <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
         </View>
 
@@ -253,13 +253,11 @@ export default function App() {
             </View>
           </View>
 
-          {/* lamp: between left panel and center */}
-          <View style={[styles.vLampStrip, { alignItems: 'flex-end' }]}>
-            <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
-          </View>
-
-          {/* CENTER */}
-          <View style={styles.center}>
+          {/* CENTER — lamps absolutely positioned at edges */}
+          <View style={[styles.center, { position: 'relative' }]}>
+            <View style={{ position: 'absolute', left: 4, top: 0, bottom: 0, justifyContent: 'center' }}>
+              <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
+            </View>
             <Text style={styles.roundLabel}>{WINDS[roundWind]} {ROUND_NUMS[roundNum - 1]} 局</Text>
             <Pressable onLongPress={roll} delayLongPress={400} style={styles.diceArea}>
               <View style={styles.diceRow}>
@@ -269,11 +267,9 @@ export default function App() {
               </View>
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
-          </View>
-
-          {/* lamp: between center and right panel */}
-          <View style={[styles.vLampStrip, { alignItems: 'flex-start' }]}>
-            <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
+            <View style={{ position: 'absolute', right: 4, top: 0, bottom: 0, justifyContent: 'center' }}>
+              <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
+            </View>
           </View>
 
           {/* RIGHT PLAYER */}
