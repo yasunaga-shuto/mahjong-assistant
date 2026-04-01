@@ -237,10 +237,8 @@ export default function App() {
           </View>
         </View>
 
-        {/* lamp: between top panel and center */}
-        <View style={[styles.hLampStrip, { justifyContent: 'center', marginHorizontal: 0 }]}>
-          <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
-        </View>
+        {/* hLampStrip top — lamp moved into center view */}
+        <View style={styles.hLampStrip} />
 
         {/* ── MIDDLE ROW ── */}
         <View style={styles.middle}>
@@ -253,9 +251,14 @@ export default function App() {
             </View>
           </View>
 
-          {/* CENTER — lamps absolutely positioned at edges */}
+          {/* CENTER — all 4 lamps absolutely positioned around dice */}
           <View style={[styles.center, { position: 'relative' }]}>
-            <View style={{ position: 'absolute', left: 4, top: 0, bottom: 0, justifyContent: 'center' }}>
+            {/* 西 top lamp */}
+            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, alignItems: 'center' }}>
+              <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
+            </View>
+            {/* 北 left lamp */}
+            <View style={{ position: 'absolute', left: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
             </View>
             <Text style={styles.roundLabel}>{WINDS[roundWind]} {ROUND_NUMS[roundNum - 1]} 局</Text>
@@ -267,8 +270,13 @@ export default function App() {
               </View>
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
-            <View style={{ position: 'absolute', right: 4, top: 0, bottom: 0, justifyContent: 'center' }}>
+            {/* 南 right lamp */}
+            <View style={{ position: 'absolute', right: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
+            </View>
+            {/* 東 bottom lamp */}
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' }}>
+              <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
             </View>
           </View>
 
@@ -282,9 +290,8 @@ export default function App() {
 
         </View>
 
-        {/* lamp + 本場: between center and bottom panel */}
+        {/* lamp + 本場: bottom lamp moved into center view */}
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
-          <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
           <View style={[styles.honbaContainer, { position: 'absolute', right: 50 }]}>
             <Text style={styles.honbaLabel}>本場</Text>
             <TextInput
