@@ -13,7 +13,7 @@ import { DiceCanvas } from './components/DiceCanvas';
 
 const WINDS = ['東', '南', '西', '北'];
 const ROUND_NUMS = ['一', '二', '三', '四'];
-const PANEL = 62;
+const PANEL = 72;
 const LAMP_STRIP = 28;
 const V_PANEL_W = 74; // left/right panel width
 const V_PANEL_MARGIN = 32; // outer margin to push panels toward center
@@ -230,14 +230,16 @@ export default function App() {
       <View style={styles.container}>
 
         {/* ── TOP PLAYER ── */}
-        <View style={[styles.hPanel, {}]}>
+        <View style={[styles.hPanel, { position: 'relative' }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
           </View>
+          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: 35 }] }}>
+            <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
+          </View>
         </View>
 
-        {/* hLampStrip top — lamp moved into center view */}
         <View style={styles.hLampStrip} />
 
         {/* ── MIDDLE ROW ── */}
@@ -253,10 +255,6 @@ export default function App() {
 
           {/* CENTER — all 4 lamps absolutely positioned around dice */}
           <View style={[styles.center, { position: 'relative' }]}>
-            {/* 西 top lamp */}
-            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, alignItems: 'center' }}>
-              <Lamp on={rouletting ? roulettePos === 2 : dealer === 2} pressable={!rouletting && shimocha === 2} longPressable={!rouletting && dealer === 2} onPress={advanceDealer} onLongPress={roll} />
-            </View>
             {/* 北 left lamp */}
             <View style={{ position: 'absolute', left: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
@@ -274,10 +272,6 @@ export default function App() {
             <View style={{ position: 'absolute', right: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
             </View>
-            {/* 東 bottom lamp */}
-            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' }}>
-              <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
-            </View>
           </View>
 
           {/* RIGHT PLAYER */}
@@ -290,7 +284,7 @@ export default function App() {
 
         </View>
 
-        {/* lamp + 本場: bottom lamp moved into center view */}
+        {/* lamp + 本場: bottom (東) */}
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
           <View style={[styles.honbaContainer, { position: 'absolute', right: 50 }]}>
             <Text style={styles.honbaLabel}>本場</Text>
@@ -320,10 +314,13 @@ export default function App() {
         </View>
 
         {/* ── BOTTOM PLAYER (自分) ── */}
-        <View style={[styles.hPanel, {}]}>
+        <View style={[styles.hPanel, { position: 'relative' }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
+          </View>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: -35 }] }}>
+            <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
           </View>
         </View>
 
