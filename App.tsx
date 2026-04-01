@@ -15,6 +15,8 @@ const WINDS = ['東', '南', '西', '北'];
 const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 62;
 const LAMP_STRIP = 28;
+const V_PANEL_W = 74; // left/right panel width
+const V_PANEL_MARGIN = 16; // outer margin to push panels toward center
 
 function TsumoOverlay({ dealer, tsumoWinner, honba, tsumoFromDealer, tsumoFromChild, setTsumoFromDealer, setTsumoFromChild, onCancel, onConfirm }: {
   dealer: number; tsumoWinner: number; honba: number;
@@ -228,7 +230,7 @@ export default function App() {
       <View style={styles.container}>
 
         {/* ── TOP PLAYER ── */}
-        <View style={[styles.hPanel, { marginLeft: 96 }]}>
+        <View style={[styles.hPanel, { marginLeft: 80 }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
@@ -244,8 +246,8 @@ export default function App() {
         <View style={styles.middle}>
 
           {/* LEFT PLAYER */}
-          <View style={[styles.vPanel, { width: PANEL }]}>
-            <View style={{ transform: [{ rotate: '90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={[styles.vPanel, { width: V_PANEL_W, marginLeft: V_PANEL_MARGIN }]}>
+            <View style={{ transform: [{ rotate: '90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10, width: 180 }}>
               <PlayerContent wind={wind(3)} score={scores[3]} hideWind={rouletting} />
               <RonTsumoButtons onRon={() => openRonModal(3)} onTsumo={() => openTsumoModal(3)} />
             </View>
@@ -275,8 +277,8 @@ export default function App() {
           </View>
 
           {/* RIGHT PLAYER */}
-          <View style={[styles.vPanel, { width: PANEL }]}>
-            <View style={{ transform: [{ rotate: '-90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={[styles.vPanel, { width: V_PANEL_W, marginRight: V_PANEL_MARGIN }]}>
+            <View style={{ transform: [{ rotate: '-90deg' }], flexDirection: 'row', alignItems: 'center', gap: 10, width: 180 }}>
               <PlayerContent wind={wind(1)} score={scores[1]} hideWind={rouletting} />
               <RonTsumoButtons onRon={() => openRonModal(1)} onTsumo={() => openTsumoModal(1)} />
             </View>
@@ -315,7 +317,7 @@ export default function App() {
         </View>
 
         {/* ── BOTTOM PLAYER (自分) ── */}
-        <View style={[styles.hPanel, { marginLeft: 96 }]}>
+        <View style={[styles.hPanel, { marginLeft: 80 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
@@ -432,7 +434,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#0a2e12',
-    paddingTop: Platform.OS === 'ios' ? 44 : 0,
+    paddingTop: Platform.OS === 'ios' ? 0 : 0,
+    paddingLeft: Platform.OS === 'ios' ? 44 : 0,   // notch / Dynamic Island (landscape)
+    paddingRight: Platform.OS === 'ios' ? 44 : 0,
   },
   container: {
     flex: 1,
@@ -441,7 +445,7 @@ const styles = StyleSheet.create({
   // ── Panels ──────────────────────────────────────────────
   hPanel: {
     height: PANEL,
-    marginHorizontal: PANEL,
+    marginHorizontal: V_PANEL_W + LAMP_STRIP,
     backgroundColor: '#12122a',
     borderColor: '#c8a84b',
     borderWidth: 1.5,
@@ -471,7 +475,7 @@ const styles = StyleSheet.create({
   // ── Lamp strips (between panels and center) ──────────────
   hLampStrip: {
     height: LAMP_STRIP,
-    marginHorizontal: PANEL,
+    marginHorizontal: V_PANEL_W,
     alignItems: 'center',
     justifyContent: 'center',
   },
