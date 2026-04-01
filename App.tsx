@@ -16,7 +16,7 @@ const ROUND_NUMS = ['一', '二', '三', '四'];
 const PANEL = 62;
 const LAMP_STRIP = 28;
 const V_PANEL_W = 74; // left/right panel width
-const V_PANEL_MARGIN = 16; // outer margin to push panels toward center
+const V_PANEL_MARGIN = 32; // outer margin to push panels toward center
 
 function TsumoOverlay({ dealer, tsumoWinner, honba, tsumoFromDealer, tsumoFromChild, setTsumoFromDealer, setTsumoFromChild, onCancel, onConfirm }: {
   dealer: number; tsumoWinner: number; honba: number;
@@ -124,7 +124,7 @@ function PlayerContent({ wind, score, hideWind = false }: { wind: string; score:
 
 function Lamp({ on, pressable = false, longPressable = false, vertical = false, onPress, onLongPress }: { on: boolean; pressable?: boolean; longPressable?: boolean; vertical?: boolean; onPress?: () => void; onLongPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={400} disabled={!pressable && !longPressable}>
+    <Pressable onPress={pressable ? onPress : undefined} onLongPress={onLongPress} delayLongPress={400} disabled={!pressable && !longPressable}>
       <View style={[styles.lampOuter, vertical && styles.lampOuterV, on && styles.lampOuterOn]}>
         <View style={[styles.lampInner, on && styles.lampInnerOn]} />
       </View>
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   // ── Panels ──────────────────────────────────────────────
   hPanel: {
     height: PANEL,
-    marginHorizontal: V_PANEL_W + LAMP_STRIP + 60,
+    marginHorizontal: V_PANEL_W + LAMP_STRIP + V_PANEL_MARGIN + 44,
     backgroundColor: '#12122a',
     borderColor: '#c8a84b',
     borderWidth: 1.5,
