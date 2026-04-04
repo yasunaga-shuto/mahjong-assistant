@@ -444,7 +444,8 @@ const styles = StyleSheet.create({
   // ── Panels ──────────────────────────────────────────────
   hPanel: {
     height: PANEL,
-    marginHorizontal: V_PANEL_W + LAMP_STRIP + V_PANEL_MARGIN + 44,
+    marginLeft: V_PANEL_W + LAMP_STRIP + V_PANEL_MARGIN + 44 - 10,
+    marginRight: V_PANEL_W + LAMP_STRIP + V_PANEL_MARGIN + 44 + 10,
     backgroundColor: '#12122a',
     borderColor: '#c8a84b',
     borderWidth: 1.5,
@@ -463,6 +464,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical: -20,
   },
   center: {
     flex: 1,
@@ -568,6 +570,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)',
     borderWidth: 1,
     borderColor: 'rgba(200,168,75,0.35)',
+    transform: [{ translateX: -10 }],
   },
   diceRow: {
     flexDirection: 'row',
