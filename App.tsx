@@ -6,6 +6,8 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -48,7 +50,8 @@ function TsumoOverlay({ dealer, tsumoWinner, honba, tsumoFromDealer, tsumoFromCh
   };
 
   return (
-    <View style={[StyleSheet.absoluteFill, styles.modalOverlay]}>
+    <KeyboardAvoidingView style={[StyleSheet.absoluteFill, styles.modalOverlay]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} keyboardShouldPersistTaps="handled">
       <View style={styles.modalBox}>
         <Text style={styles.modalTitle}>ツモ</Text>
         {!isDealer && (
@@ -92,7 +95,8 @@ function TsumoOverlay({ dealer, tsumoWinner, honba, tsumoFromDealer, tsumoFromCh
           </Pressable>
         </View>
       </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -224,7 +228,7 @@ export default function App() {
   }, [rolling]);
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <StatusBar style="light" />
 
       <View style={styles.container}>
@@ -288,17 +292,7 @@ export default function App() {
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
           <View style={[styles.honbaContainer, { position: 'absolute', right: 50 }]}>
             <Text style={styles.honbaLabel}>本場</Text>
-            <TextInput
-              style={styles.honbaInput}
-              value={String(honba)}
-              onChangeText={t => {
-                const n = parseInt(t.replace(/[^0-9]/g, ''), 10);
-                if (!isNaN(n) && n <= 99) setHonba(n);
-                else if (t === '') setHonba(0);
-              }}
-              keyboardType="number-pad"
-              maxLength={2}
-            />
+            <Text style={styles.honbaValue}>{honba}</Text>
             <View style={styles.honbaArrows}>
               <Pressable onPress={() => setHonba(h => Math.min(h + 1, 99))} style={styles.arrowBtn}>
                 <MaterialIcons name="arrow-drop-up" size={22} color="#ffffff" />
@@ -358,7 +352,8 @@ export default function App() {
 
       {/* ロン オーバーレイ */}
       {ronVisible && (
-        <View style={[StyleSheet.absoluteFill, styles.modalOverlay]}>
+        <KeyboardAvoidingView style={[StyleSheet.absoluteFill, styles.modalOverlay]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} keyboardShouldPersistTaps="handled">
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>ロン</Text>
 
@@ -423,10 +418,11 @@ export default function App() {
               </Pressable>
             </View>
           </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       )}
 
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -741,6 +737,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  honbaValue: {
+    minWidth: 28,
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   honbaInput: {
     width: 44,
