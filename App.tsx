@@ -272,6 +272,24 @@ export default function App() {
               </View>
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
+            {/* 本場 — 南家ランプの上 */}
+            <View style={{ position: 'absolute', right: '10%', top: 8 }}>
+              <View style={styles.honbaContainer}>
+                <Text style={styles.honbaLabel}>本場</Text>
+                <Text style={styles.honbaValue}>{honba}</Text>
+                <View style={styles.honbaArrows}>
+                  <Pressable onPress={() => setHonba(h => Math.min(h + 1, 99))} style={styles.arrowBtn}>
+                    <MaterialIcons name="arrow-drop-up" size={22} color="#ffffff" />
+                  </Pressable>
+                  <Pressable onPress={() => setHonba(h => Math.max(h - 1, 0))} style={styles.arrowBtn}>
+                    <MaterialIcons name="arrow-drop-down" size={22} color="#ffffff" />
+                  </Pressable>
+                </View>
+                <Pressable onPress={() => setHonba(0)} style={styles.honbaReset}>
+                  <MaterialIcons name="refresh" size={18} color="#ffffff" />
+                </Pressable>
+              </View>
+            </View>
             {/* 南 right lamp */}
             <View style={{ position: 'absolute', right: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 1 : dealer === 1} pressable={!rouletting && shimocha === 1} longPressable={!rouletting && dealer === 1} vertical onPress={advanceDealer} onLongPress={roll} />
@@ -288,23 +306,8 @@ export default function App() {
 
         </View>
 
-        {/* lamp + 本場: bottom (東) */}
+        {/* lamp: bottom (東) */}
         <View style={[styles.hLampStrip, { marginHorizontal: 0, alignItems: 'center', justifyContent: 'center' }]}>
-          <View style={[styles.honbaContainer, { position: 'absolute', right: 50 }]}>
-            <Text style={styles.honbaLabel}>本場</Text>
-            <Text style={styles.honbaValue}>{honba}</Text>
-            <View style={styles.honbaArrows}>
-              <Pressable onPress={() => setHonba(h => Math.min(h + 1, 99))} style={styles.arrowBtn}>
-                <MaterialIcons name="arrow-drop-up" size={22} color="#ffffff" />
-              </Pressable>
-              <Pressable onPress={() => setHonba(h => Math.max(h - 1, 0))} style={styles.arrowBtn}>
-                <MaterialIcons name="arrow-drop-down" size={22} color="#ffffff" />
-              </Pressable>
-            </View>
-            <Pressable onPress={() => setHonba(0)} style={styles.honbaReset}>
-              <MaterialIcons name="refresh" size={18} color="#ffffff" />
-            </Pressable>
-          </View>
         </View>
 
         {/* ── BOTTOM PLAYER (自分) ── */}
