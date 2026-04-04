@@ -260,7 +260,7 @@ export default function App() {
           {/* CENTER — all 4 lamps absolutely positioned around dice */}
           <View style={[styles.center, { position: 'relative' }]}>
             {/* 北 left lamp */}
-            <View style={{ position: 'absolute', left: '15%', top: 0, bottom: 0, justifyContent: 'center' }}>
+            <View style={{ position: 'absolute', left: '15%', top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
               <Lamp on={rouletting ? roulettePos === 3 : dealer === 3} pressable={!rouletting && shimocha === 3} longPressable={!rouletting && dealer === 3} vertical onPress={advanceDealer} onLongPress={roll} />
             </View>
             <Text style={styles.roundLabel}>{WINDS[roundWind]} {ROUND_NUMS[roundNum - 1]} 局</Text>
@@ -273,7 +273,7 @@ export default function App() {
             </Pressable>
             <Text style={styles.hint}>長押しでサイコロを振る</Text>
             {/* 本場 — 南家ランプの上 */}
-            <View style={{ position: 'absolute', right: '10%', top: 8 }}>
+            <View style={{ position: 'absolute', right: '10%', top: -22, transform: [{ translateX: 10 }] }}>
               <View style={styles.honbaContainer}>
                 <Text style={styles.honbaLabel}>本場</Text>
                 <Text style={styles.honbaValue}>{honba}</Text>
@@ -434,8 +434,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0a2e12',
     paddingTop: Platform.OS === 'ios' ? 0 : 0,
-    paddingLeft: Platform.OS === 'ios' ? 44 : 0,   // notch / Dynamic Island (landscape)
-    paddingRight: Platform.OS === 'ios' ? 44 : 0,
+    paddingLeft: Platform.OS === 'ios' ? 64 : 20,   // notch / Dynamic Island (landscape) + right shift
+    paddingRight: Platform.OS === 'ios' ? 24 : 0,
   },
   container: {
     flex: 1,
@@ -716,10 +716,10 @@ const styles = StyleSheet.create({
 
   resetButton: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
+    bottom: 82,
+    left: '18%',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
