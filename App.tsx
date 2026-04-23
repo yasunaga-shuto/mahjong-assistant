@@ -234,7 +234,7 @@ export default function App() {
       <View style={styles.container}>
 
         {/* ── TOP PLAYER ── */}
-        <View style={[styles.hPanel, { position: 'relative' }]}>
+        <View style={[styles.hPanel, { position: 'relative', zIndex: 2 }]}>
           <View style={{ transform: [{ rotate: '180deg' }], flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <PlayerContent wind={wind(2)} score={scores[2]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(2)} onTsumo={() => openTsumoModal(2)} />
@@ -316,7 +316,7 @@ export default function App() {
             <PlayerContent wind={wind(0)} score={scores[0]} hideWind={rouletting} />
             <RonTsumoButtons onRon={() => openRonModal(0)} onTsumo={() => openTsumoModal(0)} />
           </View>
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: -45 }] }}>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', transform: [{ translateY: -45 }], zIndex: 10 }}>
             <Lamp on={rouletting ? roulettePos === 0 : dealer === 0} pressable={!rouletting && shimocha === 0} longPressable={!rouletting && dealer === 0} onPress={advanceDealer} onLongPress={roll} />
           </View>
         </View>
@@ -456,6 +456,7 @@ const styles = StyleSheet.create({
   middle: {
     flex: 1,
     flexDirection: 'row',
+    zIndex: 1,
   },
   vPanel: {
     backgroundColor: '#12122a',
